@@ -1,0 +1,80 @@
+'Vendor:Component.A':
+  abstract: true
+  superTypes:
+    'JvMTECH.SelectiveMixins:Data': true
+  ui:
+    inspector:
+      groups:
+        componentGroup:
+          label: 'Component A Group'
+  properties:
+    text:
+      type: string
+      ui:
+        label: 'Component A Text'
+        inspector:
+          group: 'componentGroup'
+    anotherText:
+      type: string
+      ui:
+        label: 'Component A Another Text'
+        inspector:
+          group: 'componentGroup'
+
+'Vendor:Content.A':
+  superTypes:
+    'Neos.Neos:Content': true
+  options:
+    superTypes:
+      'Vendor:Component.A':
+        one: true
+        two:
+          text: true
+
+'Vendor:Content.B':
+  superTypes:
+    'Neos.Neos:Content': true
+  options:
+    superTypes:
+      'Vendor:Component.A':
+        one: 'Renamed %s One'
+        two:
+          text: 'Renamed %s Two'
+
+'Vendor:Content.C':
+  superTypes:
+    'Neos.Neos:Content': true
+  ui:
+    inspector:
+      groups:
+        newGroupA:
+          label: 'New Group A'
+        newGroupB:
+          label: 'New Group B'
+  options:
+    superTypes:
+      'Vendor:Component.A':
+        one: true
+        two:
+          text: true
+    mergeGroups:
+      newGroupA:
+        one:
+          componentGroup:
+            text: true
+        two: true
+      newGroupB:
+        one:
+          componentGroup:
+            anotherText: true
+
+'Vendor:Content.D':
+  superTypes:
+    'Neos.Neos:Content': true
+  options:
+    superTypes:
+      'Vendor:Component.A':
+        one:
+          '*': '%s One'
+        two:
+          '*': '%s Two'

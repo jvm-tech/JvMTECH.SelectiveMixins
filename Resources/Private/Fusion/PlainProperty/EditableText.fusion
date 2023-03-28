@@ -1,0 +1,8 @@
+prototype(JvMTECH.SelectiveMixins:Data.PlainProperty.EditableText) < prototype(JvMTECH.SelectiveMixins:Data.PlainProperty) {
+    property = 'text'
+
+    renderer = Neos.Neos:Editable {
+        property = ${SelectiveMixins.Array.toCamelCase([props.namespace, props.property])}
+        block = false
+    }
+}

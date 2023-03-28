@@ -1,0 +1,10 @@
+prototype(JvMTECH.SelectiveMixins:Data) < prototype(Neos.Fusion:Component) {
+    node = ${node}
+    @context.node = ${this.node}
+
+    namespace = ${props.namespace ? props.namespace : ''}
+
+    inEdit = ${node.context.inBackend && node.context.currentRenderingMode.edit}
+
+    renderer = Neos.Fusion:DataStructure
+}

@@ -1,0 +1,5 @@
+Neos:
+  Fusion:
+    defaultContext:
+      SelectiveMixins.Node: JvMTECH\SelectiveMixins\Eel\Helper\NodeHelper
+      SelectiveMixins.Array: JvMTECH\SelectiveMixins\Eel\Helper\ArrayHelper

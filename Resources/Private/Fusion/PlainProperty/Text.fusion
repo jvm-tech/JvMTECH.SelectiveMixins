@@ -1,0 +1,5 @@
+prototype(JvMTECH.SelectiveMixins:Data.PlainProperty.Text) < prototype(JvMTECH.SelectiveMixins:Data.PlainProperty) {
+    property = 'text'
+
+    renderer = ${q(node).property(SelectiveMixins.Array.toCamelCase([props.namespace, props.property]))}
+}

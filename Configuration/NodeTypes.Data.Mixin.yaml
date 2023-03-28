@@ -1,0 +1,15 @@
+'JvMTECH.SelectiveMixins:Data':
+  abstract: true
+  postprocessors:
+    'SelectiveMixinsPostprocessor':
+      position: 'start'
+      postprocessor: 'JvMTECH\SelectiveMixins\NodeTypePostprocessor\NamespacedMixinsPostprocessor'
+    'NodeTypePresetPostprocessor':
+      position: 'before IconNameMappingPostprocessor'
+      postprocessor: 'Neos\Neos\NodeTypePostprocessor\NodeTypePresetPostprocessor'
+    'IconNameMappingPostprocessor':
+      position: 'before DefaultPropertyEditorPostprocessor'
+      postprocessor: 'Neos\Neos\NodeTypePostprocessor\IconNameMappingPostprocessor'
+    'DefaultPropertyEditorPostprocessor':
+      position: 'end'
+      postprocessor: 'Neos\Neos\NodeTypePostprocessor\DefaultPropertyEditorPostprocessor'
