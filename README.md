@@ -1,4 +1,4 @@
-# JvMTECH.SelectiveMixins
+# JvMTECH.SelectiveMixins Package for Neos CMS
 [![Latest Stable Version](https://poser.pugx.org/jvmtech/selective-mixins/v/stable)](https://packagist.org/packages/jvmtech/selective-mixins)
 [![License](https://poser.pugx.org/jvmtech/selective-mixins/license)](https://packagist.org/packages/jvmtech/selective-mixins)
 
@@ -169,7 +169,7 @@ prototype(Vendor:Component.Link) < prototype(Neos.Fusion:Component) {
 }
 ```
 
-Create a corresponding reusable Props Mixin which does reflect the needed Props:
+Create a corresponding reusable Props Mixin which reflects the needed Props:
 ```yaml
 'Vendor:Props.Link':
   abstract: true
@@ -307,7 +307,7 @@ The generated NodeType will look like:
 
 ## Example B
 
-Merging Inspector Groups to recombine Props-Mixins (does only work with options.superTypes):
+Merging Inspector Groups to recombine Props-Mixins (only works with options.superTypes):
 ```
 'Vendor:Content.Teaser':
   superTypes:
@@ -385,7 +385,7 @@ The generated NodeType will look like:
 
 ## Tests
 
-Run the following test in your project, to make sure, the Selective NodeType generation is still working as excepted, even after upgrades:
+Run the following test in your project to make sure the Selective NodeType generation is still working as expected, even after upgrades:
 
 ```shell
 cp DistributionPackages/JvMTECH.SelectiveMixins/Tests/Functional/Fixtures/NodeTypes.yaml DistributionPackages/JvMTECH.SelectiveMixins/Configuration/NodeTypes.Test.yaml;
