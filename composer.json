@@ -2,6 +2,7 @@
     "name": "jvmtech/selective-mixins",
     "description": "Selective mixins for Neos CMS",
     "type": "neos-package",
+    "license": "MIT",
     "authors": [
         {
             "name": "Jung von Matt TECH",
