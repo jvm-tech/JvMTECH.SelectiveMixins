@@ -13,6 +13,9 @@
     "require": {
         "neos/neos": ">=8.0 || dev-master"
     },
+    "suggest": {
+        "sitegeist/kaleidoscope": "Needed to support AssetImageSource property"
+    },
     "autoload": {
         "psr-4": {
             "JvMTECH\\SelectiveMixins\\": "Classes/"
