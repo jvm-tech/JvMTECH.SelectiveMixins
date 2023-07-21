@@ -174,7 +174,7 @@ Create a corresponding reusable Props Mixin which reflects the needed Props:
 'Vendor:Props.Link':
   abstract: true
   superTypes:
-    'JvMTECH.SelectiveMixins:Data': true
+    'JvMTECH.SelectiveMixins:Props': true
   ui:
     inspector:
       groups:
@@ -196,7 +196,7 @@ Create a corresponding reusable Props Mixin which reflects the needed Props:
 
 And create a matching Props Fusion to load the component specific data:
 ```neosfusion
-prototype(Vendor:Props.Link) < prototype(JvMTECH.SelectiveMixins:Data) {
+prototype(Vendor:Props.Link) < prototype(JvMTECH.SelectiveMixins:Props) {
   text = JvMTECH.SelectiveMixins:Data.PlainProperty.Text {
     property = 'text'
   }
@@ -382,6 +382,39 @@ The generated NodeType will look like:
         inspector:
           group: 'teaserGroup'
 ```
+
+## Upgrade Instructions
+
+### 1.x to 2.x
+
+Since 2.x SelectiveMixins does properly support nested props.
+
+Example:
+```yaml
+'Vendor:Props.TwoLinks':
+  abstract: true
+  superTypes:
+    'JvMTECH.SelectiveMixins:Props': true
+  options:
+    superTypes:
+      'Vendor:Props.Link':
+        linkA: true
+        linkB: true
+```
+```neosfusion
+prototype(Vendor:Props.TwoLinks) < prototype(JvMTECH.SelectiveMixins:Props) {
+  linkA = Vendor:Props.Link {
+    namespace = 'linkA'
+  }
+  linkB = Vendor:Props.Link {
+    namespace = 'linkB'
+  }
+}
+```
+
+Therefor the fundamental prototype and mixin `JvMTECH.SelectiveMixins:Data` is now used for property loading only, and the new `JvMTECH.SelectiveMixins:Props` is there to create props.
+
+And if you did use nested workarounds with something like `SelectiveMixins.Array.toCamelCase([props.namespace, 'something'])` you now probably just need `'something'` or `SelectiveMixins.Array.toCamelCase([nestedNamespace, 'something'])`.
 
 ## Tests
 

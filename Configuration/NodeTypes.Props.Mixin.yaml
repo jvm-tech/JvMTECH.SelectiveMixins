@@ -1,0 +1,4 @@
+'JvMTECH.SelectiveMixins:Props':
+  abstract: true
+  superTypes:
+    'JvMTECH.SelectiveMixins:Data': true

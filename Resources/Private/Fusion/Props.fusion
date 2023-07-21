@@ -1,0 +1,3 @@
+prototype(JvMTECH.SelectiveMixins:Props) < prototype(JvMTECH.SelectiveMixins:Data) {
+    disableNamespaceNesting = false
+}

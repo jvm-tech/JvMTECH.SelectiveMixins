@@ -113,4 +113,28 @@ class NodeTypeTest extends FunctionalTestCase
         self::assertEquals('Component A Another Text Two', $nodeTypeResult['properties']['twoAnotherText']['ui']['label']);
     }
 
+    /**
+     * @test
+     */
+    public function getContentE()
+    {
+        $nodeTypeResult = $this->nodeTypeManager->getNodeType('Vendor:Content.E')->getFullConfiguration();
+
+        self::assertEquals('Component A Group', $nodeTypeResult['ui']['inspector']['groups']['testFirstComponentGroup']['label']);
+
+        self::assertEquals('Component A Text', $nodeTypeResult['properties']['testFirstText']['ui']['label']);
+        self::assertEquals('testFirstComponentGroup', $nodeTypeResult['properties']['testFirstText']['ui']['inspector']['group']);
+
+        self::assertEquals('Component A Another Text', $nodeTypeResult['properties']['testFirstAnotherText']['ui']['label']);
+        self::assertEquals('testFirstComponentGroup', $nodeTypeResult['properties']['testFirstAnotherText']['ui']['inspector']['group']);
+
+        self::assertEquals('Component B Group', $nodeTypeResult['ui']['inspector']['groups']['testSecondComponentGroupB']['label']);
+
+        self::assertEquals('Component B Text', $nodeTypeResult['properties']['testSecondText']['ui']['label']);
+        self::assertEquals('testSecondComponentGroupB', $nodeTypeResult['properties']['testSecondText']['ui']['inspector']['group']);
+
+        self::assertEquals('Component B Another Text', $nodeTypeResult['properties']['testSecondAnotherText']['ui']['label']);
+        self::assertEquals('testSecondComponentGroupB', $nodeTypeResult['properties']['testSecondAnotherText']['ui']['inspector']['group']);
+    }
+
 }
