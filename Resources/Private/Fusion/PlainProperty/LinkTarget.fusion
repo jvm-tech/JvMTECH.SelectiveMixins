@@ -2,5 +2,5 @@ prototype(JvMTECH.SelectiveMixins:Data.PlainProperty.LinkTarget) < prototype(JvM
     property = 'linkTarget'
 
     renderer = ${q(node).property(SelectiveMixins.Array.toCamelCase([nestedNamespace, props.property]))}
-    renderer.@process.prepend = ${value ? value + '_' : value}
+    renderer.@process.prepend = ${value ? '_' + value : value}
 }
