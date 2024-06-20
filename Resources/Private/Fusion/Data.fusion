@@ -2,7 +2,9 @@ prototype(JvMTECH.SelectiveMixins:Data) < prototype(Neos.Fusion:Component) {
     node = ${node}
     @context.node = ${this.node}
 
+    disableNamespaceNesting = true
     namespace = ${props.namespace ? props.namespace : ''}
+    @context.nestedNamespace = ${this.disableNamespaceNesting ? nestedNamespace : SelectiveMixins.Array.toCamelCase([nestedNamespace, this.namespace])}
 
     inEdit = ${node.context.inBackend && node.context.currentRenderingMode.edit}
 

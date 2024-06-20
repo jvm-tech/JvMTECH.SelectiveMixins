@@ -1,7 +1,7 @@
 'Vendor:Component.A':
   abstract: true
   superTypes:
-    'JvMTECH.SelectiveMixins:Data': true
+    'JvMTECH.SelectiveMixins:Props': true
   ui:
     inspector:
       groups:
@@ -20,6 +20,29 @@
         label: 'Component A Another Text'
         inspector:
           group: 'componentGroup'
+
+'Vendor:Component.B':
+  abstract: true
+  superTypes:
+    'JvMTECH.SelectiveMixins:Props': true
+  ui:
+    inspector:
+      groups:
+        componentGroupB:
+          label: 'Component B Group'
+  properties:
+    text:
+      type: string
+      ui:
+        label: 'Component B Text'
+        inspector:
+          group: 'componentGroupB'
+    anotherText:
+      type: string
+      ui:
+        label: 'Component B Another Text'
+        inspector:
+          group: 'componentGroupB'
 
 'Vendor:Content.A':
   superTypes:
@@ -78,3 +101,22 @@
           '*': '%s One'
         two:
           '*': '%s Two'
+
+'Vendor:Component.C':
+  abstract: true
+  superTypes:
+    'JvMTECH.SelectiveMixins:Props': true
+  options:
+    superTypes:
+      'Vendor:Component.A':
+        first: true
+      'Vendor:Component.B':
+        second: true
+
+'Vendor:Content.E':
+  superTypes:
+    'Neos.Neos:Content': true
+  options:
+    superTypes:
+      'Vendor:Component.C':
+        test: true

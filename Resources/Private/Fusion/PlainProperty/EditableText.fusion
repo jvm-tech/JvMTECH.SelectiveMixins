@@ -2,7 +2,7 @@ prototype(JvMTECH.SelectiveMixins:Data.PlainProperty.EditableText) < prototype(J
     property = 'text'
 
     renderer = Neos.Neos:Editable {
-        property = ${SelectiveMixins.Array.toCamelCase([props.namespace, props.property])}
+        property = ${SelectiveMixins.Array.toCamelCase([nestedNamespace, props.property])}
         block = false
     }
 }

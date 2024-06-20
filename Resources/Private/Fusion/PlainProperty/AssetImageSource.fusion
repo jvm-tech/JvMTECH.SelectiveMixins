@@ -2,6 +2,6 @@ prototype(JvMTECH.SelectiveMixins:Data.PlainProperty.AssetImageSource) < prototy
     property = 'image'
 
     renderer = Sitegeist.Kaleidoscope:AssetImageSource {
-        asset = ${q(node).property(SelectiveMixins.Array.toCamelCase([props.namespace, props.property]))}
+        asset = ${q(node).property(SelectiveMixins.Array.toCamelCase([nestedNamespace, props.property]))}
     }
 }
