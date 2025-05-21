@@ -2,6 +2,5 @@ prototype(JvMTECH.SelectiveMixins:Data.PlainProperty.Link) < prototype(JvMTECH.S
     property = 'link'
 
     renderer = ${q(node).property(SelectiveMixins.Array.toCamelCase([nestedNamespace, props.property]))}
-    renderer.@process.convertNode = JvMTECH.Base:Prototype.ConvertNodeToUri
     renderer.@process.convertUris = Neos.Neos:ConvertUris
 }
