@@ -384,6 +384,13 @@ The generated NodeType will look like:
 ```
 
 ## Upgrade Instructions
+### Neos Compatibility
+| Neos Version | Package Version |
+|--------------|-----------------|
+| 9.x          | 3.x             |
+| 8.x          | 1.x, 2.x        |
+### 2.x to 3.x
+No Migrations are necessary
 
 ### 1.x to 2.x
 

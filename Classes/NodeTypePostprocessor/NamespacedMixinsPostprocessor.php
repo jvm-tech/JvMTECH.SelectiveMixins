@@ -1,10 +1,12 @@
 <?php
 namespace JvMTECH\SelectiveMixins\NodeTypePostprocessor;
 
+use Neos\ContentRepository\Core\NodeType\NodeType;
+use Neos\ContentRepository\Core\NodeType\NodeTypeManager;
+use Neos\ContentRepositoryRegistry\Configuration\NodeTypeEnrichmentService;
+use Neos\ContentRepositoryRegistry\ContentRepositoryRegistry;
 use Neos\Flow\Annotations as Flow;
-use Neos\ContentRepository\Domain\Service\NodeTypeManager;
-use Neos\ContentRepository\NodeTypePostprocessor\NodeTypePostprocessorInterface;
-use Neos\ContentRepository\Domain\Model\NodeType;
+use Neos\ContentRepository\Core\NodeType\NodeTypePostprocessorInterface;
 use Neos\Flow\Configuration\ConfigurationManager;
 use Neos\Utility\Arrays;
 
@@ -13,22 +15,13 @@ use Neos\Utility\Arrays;
  */
 class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
 {
-    /**
-     * @Flow\Inject
-     * @var ConfigurationManager
-     */
-    protected $configurationManager;
-
-    /**
-     * @var array|null
-     */
-    protected $completeNodeTypeConfiguration;
-
-    /**
-     * @Flow\Inject
-     * @var NodeTypeManager
-     */
-    protected $nodeTypeManager;
+    #[Flow\Inject]
+    protected ConfigurationManager $configurationManager;
+    #[Flow\Inject]
+    protected NodeTypeEnrichmentService $nodeTypeEnrichmentService;
+    #[Flow\Inject]
+    protected ContentRepositoryRegistry $contentRepositoryRegistry;
+    protected ?array $completeNodeTypeConfiguration;
 
     public function initializeObject() {
         $this->completeNodeTypeConfiguration = $this->configurationManager->getConfiguration('NodeTypes');
@@ -69,8 +62,16 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
             return $mixinNamespace ? (lcfirst($mixinNamespace) . ucfirst($group)) : $group;
         };
 
+        // Using internal constructor because we don't have a Node
+        $nodeTypeManager = NodeTypeManager::createFromArrayConfigurationLoader(
+            function () {
+                $configuration = $this->configurationManager->getConfiguration('NodeTypes');
+                return $this->nodeTypeEnrichmentService->enrichNodeTypeLabelsConfiguration($configuration);
+            }
+        );
+
         foreach ($configuration['options']['superTypes'] as $mixinNodeType => $mixinOptions) {
-            $mixinFullConfiguration = $this->nodeTypeManager->getNodeType($mixinNodeType)->getFullConfiguration();
+            $mixinFullConfiguration = $nodeTypeManager->getNodeType($mixinNodeType)->getFullConfiguration();
 
             if ($mixinOptions === false) {
                 continue;

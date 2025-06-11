@@ -1,24 +1,22 @@
 <?php
 namespace JvMTECH\SelectiveMixins\Eel\Helper;
 
+use Neos\ContentRepository\Core\Projection\ContentGraph\Node;
+use Neos\ContentRepositoryRegistry\Factory\NodeTypeManager\NodeTypeManagerFactoryInterface;
 use Neos\Flow\Annotations as Flow;
-use Neos\ContentRepository\Domain\Model\NodeInterface;
 use Neos\Eel\ProtectedContextAwareInterface;
 
-/**
- * @Flow\Proxy(false)
- */
 class NodeHelper implements ProtectedContextAwareInterface
 {
-    /**
-     * @param NodeInterface $node
-     * @param string $propertyName
-     * @return bool
-     */
-    public function hasProperty(NodeInterface $node, string $propertyName): bool
+    #[Flow\Inject]
+    protected NodeTypeManagerFactoryInterface $nodeTypeManagerFactory;
+
+
+    public function hasProperty(Node $node, string $propertyName): bool
     {
-        $nodePropertyNames = array_keys($node->getNodeType()->getProperties());
-        return in_array($propertyName, $nodePropertyNames);
+        $nodeTypeManager = $this->nodeTypeManagerFactory->build($node->contentRepositoryId, []);
+        $nodePropertyNames = $nodeTypeManager->getNodeType($node->nodeTypeName)->getProperties();
+        return array_key_exists($propertyName, $nodePropertyNames);
     }
 
     /**
