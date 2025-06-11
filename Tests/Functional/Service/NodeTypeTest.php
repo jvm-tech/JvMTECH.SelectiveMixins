@@ -1,10 +1,10 @@
 <?php
 namespace JvMTECH\SelectiveMixins\Tests\Functional\Service;
 
-use Neos\ContentRepository\Domain\Service\NodeTypeManager;
-use Neos\Flow\Configuration\Source\YamlSource;
+use Neos\ContentRepository\Core\NodeType\NodeTypeManager;
 use Neos\Flow\Tests\FunctionalTestCase;
 use Neos\Neos\Service\NodeTypeSchemaBuilder;
+use Neos\Flow\Configuration\ConfigurationManager;
 
 /**
  * Testcase for the Selective NodeType generation
@@ -22,15 +22,17 @@ class NodeTypeTest extends FunctionalTestCase
     protected $nodeTypeManager;
 
     /**
-     * @var YamlSource
+     * @var ConfigurationManager
      */
-    protected $yamlSource;
+    protected $configurationManager;
 
     public function setUp(): void
     {
         parent::setUp();
-        $this->nodeTypeManager = $this->objectManager->get(NodeTypeManager::class);
-        $this->yamlSource = $this->objectManager->get(YamlSource::class);
+        $this->configurationManager = $this->objectManager->get(ConfigurationManager::class);
+        $this->nodeTypeManager = NodeTypeManager::createFromArrayConfigurationLoader(
+            fn() => $this->configurationManager->getConfiguration('NodeTypes')
+        );
     }
 
     /**
