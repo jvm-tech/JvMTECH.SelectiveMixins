@@ -2,8 +2,7 @@
 namespace JvMTECH\SelectiveMixins\NodeTypePostprocessor;
 
 use Neos\ContentRepository\Core\NodeType\NodeType;
-use Neos\ContentRepository\Core\NodeType\NodeTypeManager;
-use Neos\ContentRepositoryRegistry\Configuration\NodeTypeEnrichmentService;
+use Neos\ContentRepository\Core\SharedModel\ContentRepository\ContentRepositoryId;
 use Neos\ContentRepositoryRegistry\ContentRepositoryRegistry;
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Core\NodeType\NodeTypePostprocessorInterface;
@@ -17,10 +16,10 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
 {
     #[Flow\Inject]
     protected ConfigurationManager $configurationManager;
-    #[Flow\Inject]
-    protected NodeTypeEnrichmentService $nodeTypeEnrichmentService;
+
     #[Flow\Inject]
     protected ContentRepositoryRegistry $contentRepositoryRegistry;
+
     protected ?array $completeNodeTypeConfiguration;
 
     public function initializeObject() {
@@ -42,36 +41,16 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
         $originalGroups = $configuration['ui']['inspector']['groups'] ?? [];
         $namespacedGroups = [];
         $originalProperties = $configuration['properties'] ?? [];
+        $originalReferences = $configuration['references'] ?? [];
         $namespacedProperties = [];
+        $namespacedReferences = [];
         $propertyMapping = [];
 
-        $getGroup = function ($mixinNamespace, $group, $propertyName) use ($configuration) {
-            if (isset($configuration['options']['mergeGroups'])) {
-                $mergeGroups = $configuration['options']['mergeGroups'];
-                foreach ($mergeGroups as $newGroupName => $mergeGroup) {
-                    if (isset($mergeGroup[$mixinNamespace]) && $mergeGroup[$mixinNamespace] === true) {
-                        return $newGroupName;
-                    } else if (isset($mergeGroup[$mixinNamespace]) && isset($mergeGroup[$mixinNamespace][$group]) && $mergeGroup[$mixinNamespace][$group] === true) {
-                        return $newGroupName;
-                    } else if (isset($mergeGroup[$mixinNamespace]) && isset($mergeGroup[$mixinNamespace][$group]) && isset($mergeGroup[$mixinNamespace][$group][$propertyName]) && $mergeGroup[$mixinNamespace][$group][$propertyName] === true) {
-                        return $newGroupName;
-                    }
-                }
-            }
-
-            return $mixinNamespace ? (lcfirst($mixinNamespace) . ucfirst($group)) : $group;
-        };
-
-        // Using internal constructor because we don't have a Node
-        $nodeTypeManager = NodeTypeManager::createFromArrayConfigurationLoader(
-            function () {
-                $configuration = $this->configurationManager->getConfiguration('NodeTypes');
-                return $this->nodeTypeEnrichmentService->enrichNodeTypeLabelsConfiguration($configuration);
-            }
-        );
+        $nodeTypeManager = $this->contentRepositoryRegistry->get(ContentRepositoryId::fromString('default'))->getNodeTypeManager();
 
         foreach ($configuration['options']['superTypes'] as $mixinNodeType => $mixinOptions) {
-            $mixinFullConfiguration = $nodeTypeManager->getNodeType($mixinNodeType)->getFullConfiguration();
+
+            $mixinFullConfiguration = $nodeTypeManager->getNodeType($mixinNodeType)?->getFullConfiguration();
 
             if ($mixinOptions === false) {
                 continue;
@@ -80,72 +59,41 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
                 $mixinOptions = ['' => true];
             }
 
+            $mixinGroups = $mixinFullConfiguration['ui']['inspector']['groups'] ?? [];
+
             foreach ($mixinOptions as $mixinNamespace => $mixinPropertiesOrStatus) {
-                foreach ($mixinFullConfiguration['properties'] as $propertyName => $property) {
-                    $namespacedPropertyName = $mixinNamespace ? (lcfirst($mixinNamespace) . ucfirst($propertyName)) : $propertyName;
-                    if ($mixinPropertiesOrStatus === true || is_string($mixinPropertiesOrStatus) || (is_array($mixinPropertiesOrStatus) && (isset($mixinPropertiesOrStatus['*']) || in_array($propertyName, array_keys($mixinPropertiesOrStatus))))) {
-                        if (isset($property['ui']['inspector']['group'])) {
-                            $group = $property['ui']['inspector']['group'];
-                            $namespacedGroup = $getGroup($mixinNamespace, $group, $propertyName);
-                            $property['ui']['inspector']['group'] = $namespacedGroup;
-                            $namespacedGroups[$namespacedGroup] = $mixinFullConfiguration['ui']['inspector']['groups'][$group];
-                        }
+                // Process properties
+                if (isset($mixinFullConfiguration['properties'])) {
+                    $processedProperties = $this->processConfigurationItems(
+                        $mixinFullConfiguration['properties'],
+                        $mixinNamespace,
+                        $mixinPropertiesOrStatus,
+                        $mixinGroups,
+                        $configuration,
+                        $namespacedGroups,
+                        $propertyMapping
+                    );
+                    $namespacedProperties = array_merge($namespacedProperties, $processedProperties);
+                }
 
-                        // options.superTypes.'Vendor:Props.Component'.namespace: 'Extend group %s labels of these props'
-                        if (is_string($mixinPropertiesOrStatus) && strpos($mixinPropertiesOrStatus, '%s') !== false && isset($property['ui']['label'])) {
-                            if (isset($namespacedGroup) && isset($group) && isset($namespacedGroups[$namespacedGroup]['label'])) {
-                                $namespacedGroups[$namespacedGroup]['label'] = str_replace('%s', $namespacedGroups[$namespacedGroup]['label'], $mixinPropertiesOrStatus);
-                            }
-
-                        // options.superTypes.'Vendor:Props.Component'.namespace.'*': 'Extend props %s labels of this namespace'
-                        } else if (is_array($mixinPropertiesOrStatus) && isset($mixinPropertiesOrStatus['*']) && is_string($mixinPropertiesOrStatus['*'])) {
-                            if (strpos($mixinPropertiesOrStatus['*'], '%s') !== false) {
-                                $property['ui']['label'] = str_replace('%s', $property['ui']['label'], $mixinPropertiesOrStatus['*']);
-                            } else {
-                                $property['ui']['label'] = $mixinPropertiesOrStatus['*'];
-                            }
-
-                        // options.superTypes.'Vendor:Props.Component'.namespace.propertyXY: 'Extend props %s label'
-                        } else if (is_array($mixinPropertiesOrStatus) && is_string($mixinPropertiesOrStatus[$propertyName])) {
-                            if (strpos($mixinPropertiesOrStatus[$propertyName], '%s') !== false) {
-                                $property['ui']['label'] = str_replace('%s', $property['ui']['label'], $mixinPropertiesOrStatus[$propertyName]);
-                            } else {
-                                $property['ui']['label'] = $mixinPropertiesOrStatus[$propertyName];
-                            }
-                        }
-
-                        $namespacedProperties[$namespacedPropertyName] = $property;
-                        $propertyMapping[$propertyName] = $namespacedPropertyName;
-                    }
+                // Process references (Neos v9)
+                if (isset($mixinFullConfiguration['references'])) {
+                    $processedReferences = $this->processConfigurationItems(
+                        $mixinFullConfiguration['references'],
+                        $mixinNamespace,
+                        $mixinPropertiesOrStatus,
+                        $mixinGroups,
+                        $configuration,
+                        $namespacedGroups,
+                        $propertyMapping
+                    );
+                    $namespacedReferences = array_merge($namespacedReferences, $processedReferences);
                 }
             }
         }
 
-        foreach ($namespacedProperties as $namespacedPropertyName => $namespacedProperty) {
-            if (isset($namespacedProperty['ui']['inspector']['hidden'])) {
-                foreach ($propertyMapping as $originalPropertyName => $newPropertyName) {
-                    if (str_contains($namespacedProperty['ui']['inspector']['hidden'], $originalPropertyName)) {
-                        $namespacedProperties[$namespacedPropertyName]['ui']['inspector']['hidden'] = preg_replace(
-                            "/\b$originalPropertyName\b/",
-                            $newPropertyName,
-                            $namespacedProperty['ui']['inspector']['hidden']
-                        );
-                    }
-                }
-            }
-
-            if (isset($namespacedProperty['ui']['inspector']['position'])) {
-                foreach ($propertyMapping as $originalPropertyName => $newPropertyName) {
-                    if (str_contains($namespacedProperty['ui']['inspector']['position'], $originalPropertyName)) {
-                        $namespacedProperties[$namespacedPropertyName]['ui']['inspector']['position'] = preg_replace(
-                            "/\b$originalPropertyName\b/",
-                            $newPropertyName,
-                            $namespacedProperty['ui']['inspector']['position']
-                        );
-                    }
-                }
-            }
-        }
+        $this->updatePropertyReferences($namespacedProperties, $propertyMapping);
+        $this->updatePropertyReferences($namespacedReferences, $propertyMapping);
 
         $configuration['ui']['inspector']['groups'] = Arrays::arrayMergeRecursiveOverrule(
             $namespacedGroups,
@@ -157,6 +105,114 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
             $originalProperties
         );
 
+        $configuration['references'] = Arrays::arrayMergeRecursiveOverrule(
+            $namespacedReferences,
+            $originalReferences
+        );
+
     }
 
+    /**
+     * Determine the namespaced group name for a property
+     */
+    private function getGroup(string $mixinNamespace, string $group, string $propertyName, array $configuration): string
+    {
+        if (isset($configuration['options']['mergeGroups'])) {
+            $mergeGroups = $configuration['options']['mergeGroups'];
+            foreach ($mergeGroups as $newGroupName => $mergeGroup) {
+                if (isset($mergeGroup[$mixinNamespace]) && $mergeGroup[$mixinNamespace] === true) {
+                    return $newGroupName;
+                } else if (isset($mergeGroup[$mixinNamespace]) && isset($mergeGroup[$mixinNamespace][$group]) && $mergeGroup[$mixinNamespace][$group] === true) {
+                    return $newGroupName;
+                } else if (isset($mergeGroup[$mixinNamespace]) && isset($mergeGroup[$mixinNamespace][$group]) && isset($mergeGroup[$mixinNamespace][$group][$propertyName]) && $mergeGroup[$mixinNamespace][$group][$propertyName] === true) {
+                    return $newGroupName;
+                }
+            }
+        }
+
+        return $mixinNamespace ? (lcfirst($mixinNamespace) . ucfirst($group)) : $group;
+    }
+
+    /**
+     * Process configuration items (properties or references) and apply namespacing
+     */
+    private function processConfigurationItems(
+        array $items,
+        string $mixinNamespace,
+        $mixinPropertiesOrStatus,
+        array $mixinGroups,
+        array $configuration,
+        array &$namespacedGroups,
+        array &$propertyMapping
+    ): array {
+        $namespacedItems = [];
+
+        foreach ($items as $itemName => $item) {
+            $namespacedItemName = $mixinNamespace ? (lcfirst($mixinNamespace) . ucfirst($itemName)) : $itemName;
+
+            if ($mixinPropertiesOrStatus === true || is_string($mixinPropertiesOrStatus) || (is_array($mixinPropertiesOrStatus) && (isset($mixinPropertiesOrStatus['*']) || in_array($itemName, array_keys($mixinPropertiesOrStatus))))) {
+                if (isset($item['ui']['inspector']['group'])) {
+                    $group = $item['ui']['inspector']['group'];
+                    $namespacedGroup = $this->getGroup($mixinNamespace, $group, $itemName, $configuration);
+                    $item['ui']['inspector']['group'] = $namespacedGroup;
+                    $namespacedGroups[$namespacedGroup] = $mixinGroups[$group];
+                }
+
+                if (is_string($mixinPropertiesOrStatus) && strpos($mixinPropertiesOrStatus, '%s') !== false && isset($item['ui']['label'])) {
+                    if (isset($namespacedGroup) && isset($group) && isset($namespacedGroups[$namespacedGroup]['label'])) {
+                        $namespacedGroups[$namespacedGroup]['label'] = str_replace('%s', $namespacedGroups[$namespacedGroup]['label'], $mixinPropertiesOrStatus);
+                    }
+                } else if (is_array($mixinPropertiesOrStatus) && isset($mixinPropertiesOrStatus['*']) && is_string($mixinPropertiesOrStatus['*'])) {
+                    if (strpos($mixinPropertiesOrStatus['*'], '%s') !== false) {
+                        $item['ui']['label'] = str_replace('%s', $item['ui']['label'], $mixinPropertiesOrStatus['*']);
+                    } else {
+                        $item['ui']['label'] = $mixinPropertiesOrStatus['*'];
+                    }
+                } else if (is_array($mixinPropertiesOrStatus) && is_string($mixinPropertiesOrStatus[$itemName])) {
+                    if (strpos($mixinPropertiesOrStatus[$itemName], '%s') !== false) {
+                        $item['ui']['label'] = str_replace('%s', $item['ui']['label'], $mixinPropertiesOrStatus[$itemName]);
+                    } else {
+                        $item['ui']['label'] = $mixinPropertiesOrStatus[$itemName];
+                    }
+                }
+
+                $namespacedItems[$namespacedItemName] = $item;
+                $propertyMapping[$itemName] = $namespacedItemName;
+            }
+        }
+
+        return $namespacedItems;
+    }
+
+    /**
+     * Update property references in hidden and position configurations
+     */
+    private function updatePropertyReferences(array &$items, array $propertyMapping): void
+    {
+        foreach ($items as $itemName => &$item) {
+            if (isset($item['ui']['inspector']['hidden'])) {
+                foreach ($propertyMapping as $originalPropertyName => $newPropertyName) {
+                    if (str_contains($item['ui']['inspector']['hidden'], $originalPropertyName)) {
+                        $items[$itemName]['ui']['inspector']['hidden'] = preg_replace(
+                            "/\b$originalPropertyName\b/",
+                            $newPropertyName,
+                            $item['ui']['inspector']['hidden']
+                        );
+                    }
+                }
+            }
+
+            if (isset($item['ui']['inspector']['position'])) {
+                foreach ($propertyMapping as $originalPropertyName => $newPropertyName) {
+                    if (str_contains($item['ui']['inspector']['position'], $originalPropertyName)) {
+                        $items[$itemName]['ui']['inspector']['position'] = preg_replace(
+                            "/\b$originalPropertyName\b/",
+                            $newPropertyName,
+                            $item['ui']['inspector']['position']
+                        );
+                    }
+                }
+            }
+        }
+    }
 }

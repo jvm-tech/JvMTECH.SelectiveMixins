@@ -1,0 +1,7 @@
+Neos:
+  ContentRepositoryRegistry:
+    presets:
+      'default':
+        nodeTypeManager:
+          # We use our TestingNodeTypeManagerFactory to be able to register dummy nodetypes in Testing Context
+          factoryObjectName: JvMTECH\SelectiveMixins\Tests\Functional\Factory\NodeTypeManager\TestingNodeTypeManagerFactory

@@ -1,6 +1,9 @@
 <?php
 namespace JvMTECH\SelectiveMixins\Tests\Functional\Service;
 
+use Neos\ContentRepository\Core\SharedModel\ContentRepository\ContentRepositoryId;
+use Neos\ContentRepositoryRegistry\ContentRepositoryRegistry;
+use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Core\NodeType\NodeTypeManager;
 use Neos\Flow\Tests\FunctionalTestCase;
 use Neos\Neos\Service\NodeTypeSchemaBuilder;
@@ -29,10 +32,9 @@ class NodeTypeTest extends FunctionalTestCase
     public function setUp(): void
     {
         parent::setUp();
+        $contentRepositoryRegistry = $this->objectManager->get(ContentRepositoryRegistry::class);
+        $this->nodeTypeManager = $contentRepositoryRegistry->get(ContentRepositoryId::fromString('default'))->getNodeTypeManager();
         $this->configurationManager = $this->objectManager->get(ConfigurationManager::class);
-        $this->nodeTypeManager = NodeTypeManager::createFromArrayConfigurationLoader(
-            fn() => $this->configurationManager->getConfiguration('NodeTypes')
-        );
     }
 
     /**
@@ -137,6 +139,91 @@ class NodeTypeTest extends FunctionalTestCase
 
         self::assertEquals('Component B Another Text', $nodeTypeResult['properties']['testSecondAnotherText']['ui']['label']);
         self::assertEquals('testSecondComponentGroupB', $nodeTypeResult['properties']['testSecondAnotherText']['ui']['inspector']['group']);
+    }
+
+    /**
+     * @test
+     */
+    public function contentWithReferencesHasNamespacedReferences()
+    {
+        $nodeTypeResult = $this->nodeTypeManager->getNodeType('Vendor:Content.WithReferences')->getFullConfiguration();
+
+        // Check that references are namespaced correctly
+        self::assertArrayHasKey('primaryRelatedNodes', $nodeTypeResult['references']);
+        self::assertArrayHasKey('primaryTags', $nodeTypeResult['references']);
+        self::assertArrayHasKey('secondaryRelatedNodes', $nodeTypeResult['references']);
+
+        // Check properties are also namespaced
+        self::assertArrayHasKey('primaryTitle', $nodeTypeResult['properties']);
+
+        // Check that non-selected references are not present
+        self::assertArrayNotHasKey('secondaryTags', $nodeTypeResult['references']);
+    }
+
+    /**
+     * @test
+     */
+    public function contentWithReferencesHasCorrectGroupsAndLabels()
+    {
+        $nodeTypeResult = $this->nodeTypeManager->getNodeType('Vendor:Content.WithReferences')->getFullConfiguration();
+
+        // Check groups are namespaced
+        self::assertEquals('Reference Group', $nodeTypeResult['ui']['inspector']['groups']['primaryReferenceGroup']['label']);
+        self::assertEquals('Reference Group', $nodeTypeResult['ui']['inspector']['groups']['secondaryReferenceGroup']['label']);
+
+        // Check reference labels
+        self::assertEquals('Related Nodes', $nodeTypeResult['references']['primaryRelatedNodes']['ui']['label']);
+        self::assertEquals('Tags', $nodeTypeResult['references']['primaryTags']['ui']['label']);
+        self::assertEquals('Related Nodes', $nodeTypeResult['references']['secondaryRelatedNodes']['ui']['label']);
+
+        // Check reference groups
+        self::assertEquals('primaryReferenceGroup', $nodeTypeResult['references']['primaryRelatedNodes']['ui']['inspector']['group']);
+        self::assertEquals('primaryReferenceGroup', $nodeTypeResult['references']['primaryTags']['ui']['inspector']['group']);
+        self::assertEquals('secondaryReferenceGroup', $nodeTypeResult['references']['secondaryRelatedNodes']['ui']['inspector']['group']);
+
+        // Check property labels and groups
+        self::assertEquals('Title', $nodeTypeResult['properties']['primaryTitle']['ui']['label']);
+        self::assertEquals('primaryReferenceGroup', $nodeTypeResult['properties']['primaryTitle']['ui']['inspector']['group']);
+    }
+
+    /**
+     * @test
+     */
+    public function contentWithReferencesRenamedHasExtendedLabels()
+    {
+        $nodeTypeResult = $this->nodeTypeManager->getNodeType('Vendor:Content.WithReferencesRenamed')->getFullConfiguration();
+
+        // Check that group labels are extended
+        // 'main: "Main %s"' extends the group label
+        self::assertEquals('Main Reference Group', $nodeTypeResult['ui']['inspector']['groups']['mainReferenceGroup']['label']);
+        self::assertEquals('Reference Group', $nodeTypeResult['ui']['inspector']['groups']['additionalReferenceGroup']['label']);
+
+        // Check property label - stays unchanged when using namespace string pattern (only group is extended)
+        self::assertEquals('Title', $nodeTypeResult['properties']['mainTitle']['ui']['label']);
+
+        // Check reference labels with wildcard pattern - these ARE extended because of '*': 'Additional %s'
+        self::assertEquals('Additional Related Nodes', $nodeTypeResult['references']['additionalRelatedNodes']['ui']['label']);
+        self::assertEquals('Additional Tags', $nodeTypeResult['references']['additionalTags']['ui']['label']);
+    }
+
+    /**
+     * @test
+     */
+    public function contentMixedPropsAndRefsHasBothNamespaced()
+    {
+        $nodeTypeResult = $this->nodeTypeManager->getNodeType('Vendor:Content.MixedPropsAndRefs')->getFullConfiguration();
+
+        // Check that both properties and references are present and namespaced
+        self::assertArrayHasKey('contentHeading', $nodeTypeResult['properties']);
+        self::assertArrayHasKey('contentItems', $nodeTypeResult['references']);
+
+        // Check they share the same namespaced group
+        self::assertEquals('contentMixedGroup', $nodeTypeResult['properties']['contentHeading']['ui']['inspector']['group']);
+        self::assertEquals('contentMixedGroup', $nodeTypeResult['references']['contentItems']['ui']['inspector']['group']);
+
+        // Check labels are preserved
+        self::assertEquals('Heading', $nodeTypeResult['properties']['contentHeading']['ui']['label']);
+        self::assertEquals('Items', $nodeTypeResult['references']['contentItems']['ui']['label']);
     }
 
 }
