@@ -5,7 +5,6 @@ use Neos\ContentRepository\Core\SharedModel\ContentRepository\ContentRepositoryI
 use Neos\ContentRepositoryRegistry\ContentRepositoryRegistry;
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Core\NodeType\NodeTypeManager;
-use Neos\ContentRepositoryRegistry\Factory\NodeTypeManager\NodeTypeManagerFactoryInterface;
 use Neos\Flow\Tests\FunctionalTestCase;
 use Neos\Neos\Service\NodeTypeSchemaBuilder;
 use Neos\Flow\Configuration\ConfigurationManager;
@@ -29,9 +28,6 @@ class NodeTypeTest extends FunctionalTestCase
      * @var ConfigurationManager
      */
     protected $configurationManager;
-
-    #[Flow\Inject]
-    protected NodeTypeManagerFactoryInterface $nodeTypeManagerFactory;
 
     public function setUp(): void
     {

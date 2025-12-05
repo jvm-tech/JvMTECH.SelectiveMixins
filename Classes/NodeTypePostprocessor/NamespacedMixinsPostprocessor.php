@@ -2,9 +2,7 @@
 namespace JvMTECH\SelectiveMixins\NodeTypePostprocessor;
 
 use Neos\ContentRepository\Core\NodeType\NodeType;
-use Neos\ContentRepository\Core\NodeType\NodeTypeManager;
 use Neos\ContentRepository\Core\SharedModel\ContentRepository\ContentRepositoryId;
-use Neos\ContentRepositoryRegistry\Configuration\NodeTypeEnrichmentService;
 use Neos\ContentRepositoryRegistry\ContentRepositoryRegistry;
 use Neos\Flow\Annotations as Flow;
 use Neos\ContentRepository\Core\NodeType\NodeTypePostprocessorInterface;
@@ -18,10 +16,10 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
 {
     #[Flow\Inject]
     protected ConfigurationManager $configurationManager;
-    #[Flow\Inject]
-    protected NodeTypeEnrichmentService $nodeTypeEnrichmentService;
+
     #[Flow\Inject]
     protected ContentRepositoryRegistry $contentRepositoryRegistry;
+
     protected ?array $completeNodeTypeConfiguration;
 
     public function initializeObject() {
