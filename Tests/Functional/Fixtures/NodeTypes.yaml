@@ -120,3 +120,83 @@
     superTypes:
       'Vendor:Component.C':
         test: true
+
+# Neos v9 References Testing
+'Vendor:Component.WithReferences':
+  abstract: true
+  superTypes:
+    'JvMTECH.SelectiveMixins:Props': true
+  ui:
+    inspector:
+      groups:
+        referenceGroup:
+          label: 'Reference Group'
+  properties:
+    title:
+      type: string
+      ui:
+        label: 'Title'
+        inspector:
+          group: 'referenceGroup'
+  references:
+    relatedNodes:
+      ui:
+        label: 'Related Nodes'
+        inspector:
+          group: 'referenceGroup'
+    tags:
+      ui:
+        label: 'Tags'
+        inspector:
+          group: 'referenceGroup'
+
+'Vendor:Content.WithReferences':
+  superTypes:
+    'Neos.Neos:Content': true
+  options:
+    superTypes:
+      'Vendor:Component.WithReferences':
+        primary: true
+        secondary:
+          relatedNodes: true
+
+'Vendor:Content.WithReferencesRenamed':
+  superTypes:
+    'Neos.Neos:Content': true
+  options:
+    superTypes:
+      'Vendor:Component.WithReferences':
+        main: 'Main %s'
+        additional:
+          '*': 'Additional %s'
+
+'Vendor:Component.MixedPropsAndRefs':
+  abstract: true
+  superTypes:
+    'JvMTECH.SelectiveMixins:Props': true
+  ui:
+    inspector:
+      groups:
+        mixedGroup:
+          label: 'Mixed Group'
+  properties:
+    heading:
+      type: string
+      ui:
+        label: 'Heading'
+        inspector:
+          group: 'mixedGroup'
+  references:
+    items:
+      ui:
+        label: 'Items'
+        inspector:
+          group: 'mixedGroup'
+
+'Vendor:Content.MixedPropsAndRefs':
+  superTypes:
+    'Neos.Neos:Content': true
+  options:
+    superTypes:
+      'Vendor:Component.MixedPropsAndRefs':
+        content: true

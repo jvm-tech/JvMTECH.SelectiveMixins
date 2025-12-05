@@ -21,6 +21,11 @@
             "JvMTECH\\SelectiveMixins\\": "Classes/"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "JvMTECH\\SelectiveMixins\\Tests\\": "Tests/"
+        }
+    },
     "extra": {
         "neos": {
             "package-key": "JvMTECH.SelectiveMixins"

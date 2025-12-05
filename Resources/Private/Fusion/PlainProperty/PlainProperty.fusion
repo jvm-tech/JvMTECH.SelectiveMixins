@@ -3,9 +3,9 @@ prototype(JvMTECH.SelectiveMixins:Data.PlainProperty) < prototype(JvMTECH.Select
     defaultValue = null
 
     renderer = ${q(node).property(SelectiveMixins.Array.toCamelCase([nestedNamespace, props.property]))}
-    renderer.@process.default = ${value && SelectiveMixins.Node.hasProperty(node, SelectiveMixins.Array.toCamelCase([nestedNamespace, props.property])) ? value : props.defaultValue}
+    renderer.@process.default = ${value && SelectiveMixins.Node.hasPropertyOrReference(node, SelectiveMixins.Array.toCamelCase([nestedNamespace, props.property])) ? value : props.defaultValue}
 
     @if.hasNode = ${node}
     @if.hasProperty = ${this.property}
-    @if.hasPropertyDefinitionOrDefault = ${SelectiveMixins.Node.hasProperty(node, SelectiveMixins.Array.toCamelCase([nestedNamespace, this.property])) || this.defaultValue}
+    @if.hasPropertyDefinitionOrDefault = ${SelectiveMixins.Node.hasPropertyOrReference(node, SelectiveMixins.Array.toCamelCase([nestedNamespace, this.property])) || this.defaultValue}
 }
