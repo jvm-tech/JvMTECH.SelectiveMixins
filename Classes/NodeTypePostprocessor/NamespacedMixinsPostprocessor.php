@@ -46,8 +46,10 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
             return;
         }
 
+        $originalTabs = $configuration['ui']['inspector']['tabs'] ?? [];
         $originalGroups = $configuration['ui']['inspector']['groups'] ?? [];
         $namespacedGroups = [];
+        $namespacedTabs = [];
         $originalProperties = $configuration['properties'] ?? [];
         $namespacedProperties = [];
         $propertyMapping = [];
@@ -78,6 +80,11 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
             if ($mixinOptions === true) {
                 $mixinOptions = ['' => true];
             }
+
+            $namespacedTabs = Arrays::arrayMergeRecursiveOverrule(
+                $namespacedTabs,
+                $mixinFullConfiguration['ui']['inspector']['tabs'] ?? []
+            );
 
             foreach ($mixinOptions as $mixinNamespace => $mixinPropertiesOrStatus) {
                 foreach ($mixinFullConfiguration['properties'] as $propertyName => $property) {
@@ -145,6 +152,10 @@ class NamespacedMixinsPostprocessor implements NodeTypePostprocessorInterface
                 }
             }
         }
+        $configuration['ui']['inspector']['tabs'] = Arrays::arrayMergeRecursiveOverrule(
+            $namespacedTabs,
+            $originalTabs,
+        );
 
         $configuration['ui']['inspector']['groups'] = Arrays::arrayMergeRecursiveOverrule(
             $namespacedGroups,
